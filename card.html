@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聖誕快樂 - 經典翻蓋卡片</title>
+    <!-- 引入手寫風格字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Dancing+Script:wght@700&family=Montserrat:wght@300;400&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-page: #050505;
+            --card-cream: #e6d9c3;
+            --text-navy: #2c3e50;
+            --accent-red: #a32a29;
+            --white: #ffffff;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-page);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Montserrat', sans-serif;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+        }
+
+        /* 爆炸特效容器 */
+        #explosion-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .particle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* 飄雪背景 */
+        #snow-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .snowflake {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(0.5px);
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+        }
+
+        /* 卡片容器：初始隱藏 */
+        .card-container {
+            width: 350px;
+            height: 520px;
+            perspective: 2000px;
+            cursor: pointer;
+            z-index: 10;
+            position: relative;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: opacity 1.5s ease, transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .card-container.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-style: preserve-3d;
+            transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 20;
+            transform-origin: left center;
+        }
+
+        .card.is-open {
+            transform: rotateY(-155deg);
+        }
+
+        /* 卡片面樣式 */
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* 封面 */
+        .card-front {
+            background-color: var(--card-cream);
+            color: var(--text-navy);
+            text-align: center;
+            z-index: 2;
+        }
+
+        .illustration-box {
+            width: 100%;
+            height: 280px;
+            margin-top: 5px;
+            margin-bottom: 25px;
+        }
+
+        .illustration-box svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .text-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .main-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3rem;
+            margin: 0;
+            color: var(--text-navy);
+            font-weight: 700;
+            transform: rotate(-2deg);
+        }
+
+        .sub-title {
+            font-family: 'Caveat', cursive;
+            font-size: 1.5rem;
+            margin: 0;
+            font-weight: 400;
+            opacity: 0.9;
+            color: var(--accent-red);
+        }
+
+        .footer-note {
+            font-family: 'Caveat', cursive;
+            font-size: 1.1rem;
+            opacity: 0.8;
+            margin-top: auto;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            color: #555;
+        }
+
+        /* 內側固定底頁面 */
+        .card-base {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            border-radius: 8px;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px;
+            box-sizing: border-box;
+            background-image: radial-gradient(#eee 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .message-title {
+            font-family: 'Zhi Mang Xing', cursive;
+            font-size: 2.8rem;
+            color: var(--accent-red);
+            /* margin-bottom: 20px; */
+            transform: rotate(-1deg);
+            /* min-height: 1.2em; */
+        }
+
+        .message-content {
+            font-size: 0.8rem;
+            line-height: 1.6;
+            color: #333;
+            text-align: center;
+            transform: rotate(1deg);
+            min-height: 6em;
+            max-height: 350px;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .message-content::-webkit-scrollbar {
+            display: none;
+        }
+
+        .signature {
+            margin-top: 40px;
+            font-family: 'Dancing Script', cursive;
+            font-size: 2rem;
+            color: var(--text-navy);
+            align-self: flex-end;
+            margin-right: 20px;
+            transform: rotate(-5deg);
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .card-back {
+            background-color: #fcfbf9;
+            transform: rotateY(180deg);
+            z-index: 1;
+            border-right: 1px solid rgba(0,0,0,0.05);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="explosion-container"></div>
+    <div id="snow-container"></div>
+
+    <div class="card-container" id="cardContainer">
+        <!-- 固定底面訊息 (打字機目標) -->
+        <div class="card-base">
+            <h2 class="message-title" id="type-title"></h2>
+            <div class="message-content" id="type-content"></div>
+            <div class="signature" id="signature">Best Wishes</div>
+        </div>
+
+        <!-- 封面部分 -->
+        <div class="card" id="cardElement">
+            <div class="card-face card-front">
+                <div class="illustration-box">
+                    <svg viewBox="0 0 240 300" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M120 20 L126 35 L142 35 L130 45 L135 60 L120 50 L105 60 L110 45 L98 35 L114 35 Z" fill="#2c3e50" />
+                        <path d="M120 65 L145 105 H95 Z" fill="#fff" />
+                        <path d="M120 80 L138 105 H102 Z" fill="#f5f5f5" />
+                        <path d="M80 120 Q70 120 70 135 L70 155 Q70 170 85 170 H90 L90 150 L80 150 Z" fill="#a32a29" />
+                        <rect x="68" y="120" width="22" height="6" rx="1" fill="#fff" />
+                        <path d="M150 135 Q150 120 165 120 Q180 120 180 135 L185 160 H145 Z" fill="#fff" opacity="0.9" />
+                        <circle cx="165" cy="165" r="3" fill="#2c3e50" />
+                        <g stroke="#2c3e50" stroke-width="2.5" stroke-linecap="round">
+                            <line x1="55" y1="195" x2="85" y2="180" />
+                            <line x1="60" y1="195" x2="55" y2="185" />
+                            <line x1="72" y1="188" x2="68" y2="178" />
+                        </g>
+                        <path d="M155 175 Q180 175 180 195 L180 230" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" />
+                        <path d="M155 175 Q180 175 180 195 L180 230" fill="none" stroke="#a32a29" stroke-width="9" stroke-dasharray="8,8" stroke-linecap="round" />
+                        <rect x="45" y="240" width="38" height="38" fill="#2c3e50" />
+                        <rect x="54" y="240" width="3" height="38" fill="#fff" opacity="0.3" />
+                        <rect x="71" y="240" width="3" height="38" fill="#fff" opacity="0.3" />
+                        <rect x="45" y="258" width="38" height="4" fill="#fff" opacity="0.2" />
+                        <path d="M120 225 L138 285 H102 Z" fill="#a32a29" />
+                        <circle cx="175" cy="255" r="20" fill="#2c3e50" />
+                        <path d="M158 250 H192" stroke="#fff" stroke-width="2" opacity="0.2" />
+                        <path d="M155 260 H195" stroke="#fff" stroke-width="2" opacity="0.2" />
+                        <g opacity="0.4" fill="#2c3e50">
+                            <text x="35" y="95" font-size="10">❄</text>
+                            <text x="205" y="115" font-size="12">❄</text>
+                            <circle cx="45" cy="185" r="1.5" />
+                            <circle cx="210" cy="225" r="2" />
+                        </g>
+                    </svg>
+                </div>
+                
+                <div class="text-content">
+                    <h1 class="main-title">Merry Christmas</h1>
+                    <p class="sub-title">& happy new year</p>
+                </div>
+                
+                <p class="footer-note">Hope all your Christmas dreams come true</p>
+            </div>
+            <div class="card-face card-back"></div>
+        </div>
+    </div>
+
+    <script>
+        const cardContainer = document.getElementById('cardContainer');
+        const cardElement = document.getElementById('cardElement');
+        const typeTitle = document.getElementById('type-title');
+        const typeContent = document.getElementById('type-content');
+        const signature = document.getElementById('signature');
+        const explosionContainer = document.getElementById('explosion-container');
+        
+        const titleText = "";
+        const messageText = `
+            小樺！今年真的是我最開心的一年了，很開心遇到你 跟你度過很多時刻 一起出去玩也說好了未來
+            每次我說你是世界上對我最好的人，都是說真的 😠
+            我們都是不被疼的小孩，所以都特別珍惜還有害怕失去
+            但是我想跟你說！我會一直都在 只要你不要嫌棄 ✨
+            雖然我們很常吵架，吵架的時候也都會講難聽的話
+            可是我覺得這些都只是磨合，只要吵完我們還是很愛對方珍惜對方就好了！
+            所以你也不要害怕吵架我們會分開，
+            只要你在 我就不會離開ㄉ
+            希望明年、後年、很多年我們都能一起過聖誕節 一起過新年 一起過很多很多節日
+            以後還有棉花糖跟天香三 我真的超級期待未來 🔥
+            有你的未來噢
+            祝小樺聖誕快樂 新年快樂 天天快樂 ❤️
+        `;
+        
+        let isOpen = false;
+        let isLocked = false;
+
+        // 初始載入：執行爆炸並顯示卡片
+        window.onload = () => {
+            triggerExplosion();
+            setTimeout(() => {
+                cardContainer.classList.add('visible');
+            }, 800);
+        };
+
+        function triggerExplosion() {
+            const particleCount = 60;
+            const colors = ['#ffd700', '#ff4d4d', '#ffffff', '#2ecc71', '#3498db'];
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.backgroundColor = color;
+                particle.style.boxShadow = `0 0 10px ${color}`;
+                
+                explosionContainer.appendChild(particle);
+
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 5 + Math.random() * 10;
+                const tx = Math.cos(angle) * velocity * 20;
+                const ty = Math.sin(angle) * velocity * 20;
+
+                particle.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(0)`, opacity: 0 }
+                ], {
+                    duration: 1000 + Math.random() * 1000,
+                    easing: 'cubic-bezier(0, .9, .57, 1)',
+                    fill: 'forwards'
+                }).onfinish = () => particle.remove();
+            }
+        }
+
+        cardContainer.addEventListener('click', () => {
+            if (isLocked) return;
+            isOpen = !isOpen;
+            if (isOpen) {
+                isLocked = true;
+                cardElement.classList.add('is-open');
+                setTimeout(startTyping, 600);
+            } else {
+                cardElement.classList.remove('is-open');
+                resetTyping();
+            }
+        });
+
+        function startTyping() {
+            if (!isOpen) return;
+            typeTitle.innerHTML = "";
+            typeContent.innerHTML = "";
+            signature.style.opacity = "0";
+
+            let i = 0;
+            function typeT() {
+                if (i < titleText.length) {
+                    typeTitle.innerHTML += titleText.charAt(i);
+                    i++;
+                    setTimeout(typeT, 150);
+                } else {
+                    i = 0;
+                    setTimeout(typeC, 300);
+                }
+            }
+
+            function typeC() {
+                if (i < messageText.length) {
+                    let char = messageText.charAt(i);
+                    if (char === "\n") {
+                        typeContent.innerHTML += "<br>";
+                    } else {
+                        typeContent.innerHTML += char;
+                    }
+                    i++;
+                    setTimeout(typeC, 80);
+                } else {
+                    signature.style.opacity = "1";
+                }
+            }
+            typeT();
+        }
+
+        function resetTyping() {
+            typeTitle.innerHTML = "";
+            typeContent.innerHTML = "";
+            signature.style.opacity = "0";
+        }
+
+        function createSnowflake() {
+            const snow = document.createElement('div');
+            snow.className = 'snowflake';
+            const size = Math.random() * 4 + 2;
+            const startX = Math.random() * window.innerWidth;
+            const duration = Math.random() * 6 + 4;
+            snow.style.width = `${size}px`;
+            snow.style.height = `${size}px`;
+            snow.style.left = `${startX}px`;
+            snow.style.top = `-10px`;
+            snow.style.opacity = Math.random() * 0.8 + 0.2;
+            document.getElementById('snow-container').appendChild(snow);
+            snow.animate([
+                { transform: `translateY(0) translateX(0)` },
+                { transform: `translateY(${window.innerHeight + 20}px) translateX(${(Math.random() - 0.5) * 80}px)` }
+            ], {
+                duration: duration * 1000,
+                easing: 'linear'
+            }).onfinish = () => snow.remove();
+        }
+
+        setInterval(createSnowflake, 150);
+        for(let i=0; i<40; i++) setTimeout(createSnowflake, Math.random()*4000);
+    </script>
+</body>
+</html>
